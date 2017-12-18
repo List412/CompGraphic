@@ -61,9 +61,9 @@ namespace OpenGL
 
         public static void Main1()
         {
-            game = new GameWindow(WINDOW_BASE_WIDTH, WINDOW_BASE_HEIGHT, new GraphicsMode(32, 4, 0, 2));
+            game = new GameWindow(WINDOW_BASE_WIDTH, WINDOW_BASE_HEIGHT, new GraphicsMode(32, 8, 0, 4));
 
-            float size = 50;
+            float size = 80;
             float ligthX = size / 2f, ligthY = size - size / 10f, lightZ = size / 2f;
             float ligthTopX = size / 2f, ligthTopY = size - size / 10f, lightTopZ = size / 2f;
             int count = 15;
@@ -87,37 +87,7 @@ namespace OpenGL
                 GL.MatrixMode(MatrixMode.Modelview);
                 GL.LoadMatrix(ref modelview);
 
-                //var texture_source = new Bitmap("texture.png");
-
-
-                ////Generate empty texture
-                //texture = GL.GenTexture();
-
-                ////Link empty texture to texture2d
-                //GL.BindTexture(TextureTarget.Texture2D, texture);
-
-                ////Must be set else the texture will show glColor
-                ////GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
-                ////GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-
-                ////Describe to gl what we want the bound texture to look like
-                //GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, texture_source.Width, texture_source.Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, IntPtr.Zero);
-
-                ////Lock pixel data to memory and prepare for pass through
-                //System.Drawing.Imaging.BitmapData bitmap_data = texture_source.LockBits(new System.Drawing.Rectangle(0, 0, texture_source.Width, texture_source.Height),
-                //    System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-                ////Tell gl to write the data from are bitmap image/data to the bound texture
-                //GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, texture_source.Width, texture_source.Height, PixelFormat.Bgra, PixelType.UnsignedByte, bitmap_data.Scan0);
-
-                ////Release from memory
-                //texture_source.UnlockBits(bitmap_data);
-
-                ////Release texture
-                //GL.BindTexture(TextureTarget.Texture2D, 0);
-
-                ////Enable textures from texture2d target
-                //GL.Enable(EnableCap.Texture2D);
+               
                 earthTexture = LoadTexture("texture.png", 1, flip_y: true);
                 current_texture = LoadTexture("grass.jpg", 1);
                 caverTexture = LoadTexture("caver.jpg", 1);
@@ -129,7 +99,49 @@ namespace OpenGL
                 //The operation/order to blend
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 //Use for pixel depth comparing before storing in the depth buffer
-                GL.Enable(EnableCap.DepthTest);               
+                GL.Enable(EnableCap.DepthTest);
+                GL.Enable(EnableCap.Normalize);
+
+                float[] mat_diffuse = { 0.1f, 0.1f, 0.1f };
+                GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Specular, mat_diffuse);
+                //1.0f, 1.0f, 1.0f
+                float[] whiteSpecularLight = new float[] { 1.0f, 1.0f, 1.0f };
+                float[] blackAmbientLight = new float[] { 0.1f, 0.1f, 0.1f };
+                float[] whiteDiffuseLight = new float[] { 1.0f, 1.0f, 1.0f };
+
+                GL.Light(LightName.Light0, LightParameter.Specular, whiteSpecularLight);
+                GL.Light(LightName.Light0, LightParameter.Ambient, blackAmbientLight);
+                GL.Light(LightName.Light0, LightParameter.Diffuse, whiteDiffuseLight);
+                GL.Material(MaterialFace.Front, MaterialParameter.Shininess, 30);
+
+                GL.LightModel(LightModelParameter.LightModelAmbient, new float[] { 0.1f, 0.1f, 0.1f, 1.0f });
+                //GL.LightModel(LightModelParameter.LightModelTwoSide, 1);
+                GL.LightModel(LightModelParameter.LightModelLocalViewer, 1);
+                GL.Material(MaterialFace.Front, MaterialParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
+                GL.Material(MaterialFace.Front, MaterialParameter.Diffuse, new float[] { 0.5f, 0.5f, 0.5f, 1.0f });
+                GL.Material(MaterialFace.Front, MaterialParameter.Specular, new float[] { 0.5f, 0.5f, 0.5f, 1.0f });
+                GL.Material(MaterialFace.Front, MaterialParameter.Emission, new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
+
+                GL.LightModel(LightModelParameter.LightModelColorControl, 1);
+
+
+                //GL.Light(LightName.Light0, LightParameter.ConstantAttenuation, 0.8f);
+                //GL.Light(LightName.Light0, LightParameter.SpotDirection, new float[] { 0f, -1f, 0f });
+                //GL.Light(LightName.Light0, LightParameter.ConstantAttenuation, 2f);
+                //GL.Light(LightName.Light0, LightParameter.SpotCutoff, 34f);
+                GL.Light(LightName.Light0, LightParameter.ConstantAttenuation, 1.8f);
+                GL.Light(LightName.Light0, LightParameter.LinearAttenuation, 0.0f);
+                GL.Light(LightName.Light0, LightParameter.QuadraticAttenuation, 0.0f);
+                //GL.Light(LightName.Light0, LightParameter.SpotExponent, 1f);
+                GL.Light(LightName.Light0, LightParameter.Position, new float[] { ligthX, ligthY, lightZ, 1f });
+            
+
+                GL.ShadeModel(ShadingModel.Smooth);
+                GL.Enable(EnableCap.Lighting);
+                GL.Enable(EnableCap.Light0);
+                GL.Enable(EnableCap.ColorMaterial);
+                
+
             };
 
             game.Resize += (sender, e) =>
@@ -250,33 +262,12 @@ namespace OpenGL
             game.RenderFrame += (sender, e) =>
             {
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                
-                //light
 
+                //light                                         
 
-                float[] mat_diffuse = { 0.1f, 0.1f, 0.1f };
-                GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Specular, mat_diffuse);
-
-                float[] whiteSpecularLight = new float[] { 0.2f, 0.8f, 0.2f };
-                float[] blackAmbientLight = new float[] { 0.2f, 0.2f, 0.2f };
-                float[] whiteDiffuseLight = new float[] { 0.8f, 0.2f, 0.8f };
-
-                GL.Light(LightName.Light0, LightParameter.Specular, whiteSpecularLight);
-                GL.Light(LightName.Light0, LightParameter.Ambient, blackAmbientLight);
-                GL.Light(LightName.Light0, LightParameter.Diffuse, whiteDiffuseLight);
-
-                //GL.Light(LightName.Light0, LightParameter.ConstantAttenuation, 0.8f);
-                //GL.Light(LightName.Light0, LightParameter.SpotDirection, new float[] { 0f, -1f, 0f });
-                //GL.Light(LightName.Light0, LightParameter.ConstantAttenuation, 2f);
-                //GL.Light(LightName.Light0, LightParameter.SpotCutoff, 34f);
-                //GL.Light(LightName.Light0, LightParameter.ConstantAttenuation, 1.81f);
-                //GL.Light(LightName.Light0, LightParameter.SpotExponent, 1f);
                 GL.Light(LightName.Light0, LightParameter.Position, new float[] { ligthX, ligthY, lightZ, 1f });
-
                 GL.ShadeModel(ShadingModel.Smooth);
-                GL.Enable(EnableCap.Lighting);
-                GL.Enable(EnableCap.Light0);
-                GL.Enable(EnableCap.ColorMaterial);
+
 
                 Color[] colors = new Color[6];
                 for (int i = 0; i < colors.Length; i++)
@@ -286,20 +277,14 @@ namespace OpenGL
                 //DrawCube(0, 2, 0.01f, 2, ligthX - 1f, ligthY + 2f, lightZ - 1f, 15, colors);
                 GL.Color3(Color.Black);
                 DrawLine(ligthTopX, size, lightTopZ, ligthX, ligthY, lightZ);
-                GL.Color3(Color.LightGoldenrodYellow);
+                GL.Color3(Color.LightGoldenrodYellow);              
+                Sphere(size/40f, 15, 15, ligthX, ligthY, lightZ, 0, true);
 
-                Sphere(1, 20, 20, ligthX, ligthY, lightZ, 0, true);
-
-                count++;
-                if (count > 20)
-                {
-                    direction = !direction;
-                    count = 0;
-                }
+                              
                 GL.Disable(EnableCap.Texture2D);
                 colors = new Color[]
                 {
-                    Color.Transparent, Color.Orange, Color.Brown, Color.DarkSlateBlue, Color.Sienna, Color.Orange
+                    Color.Transparent, Color.Orange, Color.DarkSlateBlue, Color.DarkSlateBlue, Color.Sienna, Color.Orange
                 };
 
                 float k = 12f;
@@ -309,60 +294,45 @@ namespace OpenGL
                 DrawCube(0, size, size, size*3, 0, 0, 0, 100, colors, false);
                 GL.Disable(EnableCap.Texture2D);
                
-                DrawCube(0, size, size / 25f, size / 10, 0, size - size / 5, 0, 80, colors);
+                DrawCube(0, size, size / 25f, size / 10, 0, size - size / 5, 0, 70, colors);
                
                 //axes
-                GL.Color3(Color.Red);
-                GL.Begin(PrimitiveType.Lines);
+                //GL.Color3(Color.Red);
+                //GL.Begin(PrimitiveType.Lines);
 
-                GL.Vertex3(0, 0, 0);
-                GL.Vertex3(20, 0, 0);
-                GL.Color3(Color.Yellow);
-                GL.Vertex3(0, 0, 0);
-                GL.Vertex3(0, 40, 0);
-                GL.Color3(Color.Green);
-                GL.Vertex3(0, 0, 0);
-                GL.Vertex3(0, 0, 60);
-                GL.End();
+                //GL.Vertex3(0, 0, 0);
+                //GL.Vertex3(20, 0, 0);
+                //GL.Color3(Color.Yellow);
+                //GL.Vertex3(0, 0, 0);
+                //GL.Vertex3(0, 40, 0);
+                //GL.Color3(Color.Green);
+                //GL.Vertex3(0, 0, 0);
+                //GL.Vertex3(0, 0, 60);
+                //GL.End();
 
                 k = 10;
 
                 GL.Enable(EnableCap.Texture2D);
                 GL.Color3(Color.Transparent);
                 GL.BindTexture(TextureTarget.Texture2D, current_texture);
-                Sphere(size / k, 90, 90, size / k + 2, size / k, size / k, 0);
+                Sphere(size / k, 80, 80, size / k + 2, size / k, size / k, 0);
                 GL.BindTexture(TextureTarget.Texture2D, earthTexture);
-                Sphere(size / k, 90, 90, size - size / k, size / k, size / k + 2, 0);
+                Sphere(size / k, 80, 80, size - size / k, size / k, size / k + 2, 0);
                 GL.Disable(EnableCap.Texture2D);
-                
-                //sphereAngle++;
 
-                for (float x = size / 5f; x < size; x += size / 5f)
-                {
-                    for (float y = size / 5f; y < size; y += size / 5f)
-                    {
-                        for (float z = size / 5f; z < size; z += size / 5f)
-                        {
-                            //Sphere(2, 25, 25, x, y, z, sphereAngle);
-                        }
-                    }
-                }
 
-                //DrawCube(30, 10, 10, 10, 30, 30, 30, 10, colors);
 
-                GL.Disable(EnableCap.Texture2D);
-                GL.Enable(EnableCap.AlphaTest);
-                GL.Enable(EnableCap.Blend);
-                //GL.DepthMask(false);
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
                 GL.Enable(EnableCap.Texture2D);
                 GL.BindTexture(TextureTarget.Texture2D, footBallTextur);
                 Sphere(size / 12, 60, 60, size / 3 - size / 12, size / 12, size / 2, 0);
-                //GL.DepthMask(true);
-                GL.Disable(EnableCap.AlphaTest);
-                GL.Disable(EnableCap.Blend);
+
                 GL.Disable(EnableCap.Texture2D);
                 // GL.Translate(size / 2, size / 2, 0);
+
+                GL.Color4(0.2f, 0.7f, 0.7f, 0.4f);
+                Sphere(size / 6f, 70, 70, size / 2f - size / 6f, size / 2f - size / 6f, size / 2f - size / 6f, 0);
+
                 game.SwapBuffers();
             };
 
@@ -382,8 +352,8 @@ namespace OpenGL
         static void Room(float width)
         {
             /*задняя*/
-            GL.Normal3(0, 0, width);
-            GL.Color3(Color.Red);
+            
+           
             GL.Begin(PrimitiveType.Polygon);
             GL.Vertex3(0, 0, 0);
             GL.Vertex3(width, 0, 0);
@@ -392,8 +362,7 @@ namespace OpenGL
             GL.End();
 
             /*левая*/
-            GL.Normal3(width, 0, 0);
-            GL.Color3(Color.Orange);
+           
             GL.Begin(PrimitiveType.Polygon);
             GL.Vertex3(0, 0, 0);
             GL.Vertex3(0, 0, width);
@@ -402,8 +371,7 @@ namespace OpenGL
             GL.End();
 
             /*нижняя*/
-            GL.Normal3(0, width, 0);
-            GL.Color3(Color.Coral);
+           
             GL.Begin(PrimitiveType.Polygon);
             GL.Vertex3(0, 0, 0);
             GL.Vertex3(0, 0, width);
@@ -412,8 +380,7 @@ namespace OpenGL
             GL.End();
 
             /*верхняя*/
-            GL.Normal3(0, -width, 0);
-            GL.Color3(Color.RoyalBlue);
+          
             GL.Begin(PrimitiveType.Polygon);
             GL.Vertex3(0, width, 0);
             GL.Vertex3(0, width, width);
@@ -422,8 +389,7 @@ namespace OpenGL
             GL.End();
 
             /*правая*/
-            GL.Normal3(-width, 0, 0);
-            GL.Color3(Color.Orange);
+           
             GL.Begin(PrimitiveType.Polygon);
             GL.Vertex3(width, 0, 0);
             GL.Vertex3(width, 0, width);
@@ -432,8 +398,7 @@ namespace OpenGL
             GL.End();
 
             /*передняя*/
-            GL.Normal3(0, 0, -width);
-            GL.Color3(Color.Sienna);
+           
             GL.Begin(PrimitiveType.Polygon);
             GL.Vertex3(0, 0, width);
             GL.Vertex3(width, 0, width);
@@ -549,21 +514,28 @@ namespace OpenGL
 
             /*задняя*/
             GL.Begin(PrimitiveType.Polygon);
-            GL.Color3(colors6[0]);
+            GL.Color3(colors6[0]);            
             GL.Normal3(0f, 0f, 1f * l);
+
+
             for (float w = 0; w < width; w += stepX)
             {
                 for (float h = 0; h < height; h += stepY)
                 {
+                    //Vector3 vector = getSurfaceNormal(
+                    //    new Vector3(positionX + w, positionY + h, positionZ),
+                    //    new Vector3(positionX + w + stepX, positionY + h, positionZ),
+                    //    new Vector3(positionX + w + stepX, positionY + h + stepY, positionZ));
+                    //GL.Normal3(vector.X, vector.Y, vector.Z);
                     GL.TexCoord2(w / width, h / height);
                     GL.Vertex3(positionX + w, positionY + h, positionZ);
-
+                    
                     GL.TexCoord2(w / width + 1.0f / polygons, h / height);
                     GL.Vertex3(positionX + w + stepX, positionY + h, positionZ);
-
+                   
                     GL.TexCoord2(w / width + 1.0f / polygons, h / height + 1.0f / polygons);
                     GL.Vertex3(positionX + w + stepX, positionY + h + stepY, positionZ);
-
+                    
                     GL.TexCoord2(w / width, h / height + 1.0f / polygons);
                     GL.Vertex3(positionX + w, positionY + h + stepY, positionZ);
                 }
@@ -573,15 +545,27 @@ namespace OpenGL
             /*левая*/
             GL.Normal3(1f * l, 0f, 0f);
             GL.Color3(colors6[1]);
+            
             GL.Begin(PrimitiveType.Polygon);
 
             for (float d = 0; d < depth; d += stepZ)
             {
                 for (float h = 0; h < height; h += stepY)
-                {                                                                
-                    GL.Vertex3(positionX, positionY + h, positionZ + d);                   
-                    GL.Vertex3(positionX, positionY + h + stepY, positionZ + d);                  
-                    GL.Vertex3(positionX, positionY + h + stepY, positionZ + d + stepZ);                  
+                {
+                    //Vector3 vector = getSurfaceNormal(
+                    //    new Vector3(positionX, positionY + h, positionZ + d),
+                    //    new Vector3(positionX, positionY + h + stepY, positionZ + d),
+                    //    new Vector3(positionX, positionY + h + stepY, positionZ + d + stepZ));
+
+
+                    //GL.Normal3(vector.X, vector.Y, vector.Z);
+
+                    GL.Vertex3(positionX, positionY + h, positionZ + d);
+                   
+                    GL.Vertex3(positionX, positionY + h + stepY, positionZ + d);
+                    
+                    GL.Vertex3(positionX, positionY + h + stepY, positionZ + d + stepZ);
+                   
                     GL.Vertex3(positionX, positionY + h, positionZ + d + stepZ);
                 }
             }
@@ -596,8 +580,11 @@ namespace OpenGL
                 for (float w = 0; w < width; w += stepX)
                 {
                     GL.Vertex3(positionX + w, positionY, positionZ + d);
+                    GL.Normal3(0f, 1f * l, 0f);
                     GL.Vertex3(positionX + w + stepX, positionY, positionZ + d);
+                    GL.Normal3(0f, 1f * l, 0f);
                     GL.Vertex3(positionX + w + stepX, positionY, positionZ + d + stepZ);
+                    GL.Normal3(0f, 1f * l, 0f);
                     GL.Vertex3(positionX + w, positionY, positionZ + d + stepZ);
                 }
             }
@@ -656,8 +643,6 @@ namespace OpenGL
             GL.End();
             
         }
-
-
 
         private static int LoadTexture(string path, int quality = 0, bool repeat = true, bool flip_y = false)
         {
@@ -773,7 +758,6 @@ namespace OpenGL
 
         static void Sphere(double radius, int xPoligonCount, int yPoligonCount, double xOffset, double yOffset, double zOffset, float angle, bool insideL = false)
         {           
-
             //GL.Translate(xOffset + radius, yOffset + radius, zOffset + radius);
             //GL.Rotate(angle, 0, 1, 0);
 
@@ -825,8 +809,7 @@ namespace OpenGL
           
         }
 
-
-        Vector3 crossProduct(Vector3 v1, Vector3 v2)
+        static Vector3 crossProduct(Vector3 v1, Vector3 v2)
         {
             Vector3 cross = new Vector3(
                 v1.Y * v2.Z - v1.Z * v2.Y,
@@ -835,7 +818,7 @@ namespace OpenGL
             return cross;
         }
 
-        Vector3 getSurfaceNormal(Vector3 v1, Vector3 v2, Vector3 v3)
+        static Vector3 getSurfaceNormal(Vector3 v1, Vector3 v2, Vector3 v3)
         {
 
             /*
